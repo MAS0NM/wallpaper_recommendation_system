@@ -21,9 +21,9 @@ class itemCF:
         min_rate = inf
         rec_rank_with_rate = []
         rec_rank = []
-        
+        total_idx_pool = []
         for item in ratingRank:
-            rec_item_num_dict[item[0]] = math.ceil(int(item[1] / total_rate * top))
+            rec_item_num_dict[item[0]] = int(item[1] / total_rate * top) + 1
             
         for item in ratingRank:
             img_name = item[0]
@@ -32,10 +32,21 @@ class itemCF:
             min_rate = min(img_rate, min_rate)
             idx = self.img2idx[img_name]
             topn = rec_item_num_dict[img_name]
-            idx_rank = np.argsort(-self.sim_mat[idx])[:topn+1]
-            img_rank = [(self.idx2img[i], img_rate) for i in idx_rank]
+            idx_rank = np.argsort(-self.sim_mat[idx])
+            this_idx_rank = []
+            counter = 0
+            for idx in idx_rank:
+                if counter >= topn:
+                    break
+                if idx in total_idx_pool:
+                    continue
+                total_idx_pool.append(idx)
+                this_idx_rank.append(idx)
+                counter += 1
+                
+            img_rank = [(self.idx2img[i], img_rate) for i in this_idx_rank]
             for img_rate in img_rank:
-                for i in rec_rank_with_rate:
+                for i in img_rank:
                     if i[0] == img_rate[0]:
                         continue
                 rec_rank_with_rate.append(img_rate)
