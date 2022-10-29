@@ -1,9 +1,10 @@
 import os
-from recDataLoader import dataLoader
-from similarity_matrix import similarity_matrix
-from recom import itemCF
+from .recDataLoader import dataLoader
+from .sim_matrix import similarity_matrix
+from .recom import itemCF
 import pickle
-
+root_dir = os.path.dirname(os.path.realpath(__file__))
+print (root_dir)
 test_input = {
     'table':{
         'user1':{
@@ -30,40 +31,35 @@ def getUserRating(user, table):
             rating_dict[item] = 0
     return rating_dict
 
-def rec_init(objects_path, filelist_path, img_dir, featureMap_path):
+def rec_init(objects_path='./objects', filelist_path='./filelist/filelist.csv', img_dir='./imgs', featureMap_path='./features/features.json'):
     dl, sm, cf = None, None, None
     try:
-        with open(os.path.join(objects_path, 'dl.pkl'), 'rb') as f:
+        with open(os.path.join(root_dir,objects_path, 'dl.pkl'), 'rb') as f:
             print('loading dl')
             dl = pickle.load(f)
     except:
+            print('dumping dl')
             dl = dataLoader(filelist_path, img_dir, featureMap_path)
             with open(os.path.join(objects_path, 'dl.pkl'), 'wb') as f:
-                print('dumping dl')
                 pickle.dump(dl, f)
             
     try:
-        with open(os.path.join(objects_path, 'sm.pkl'), 'rb') as f:
+        with open(os.path.join(root_dir,objects_path, 'sm.pkl'), 'rb') as f:
             print('loading sm')
             sm = pickle.load(f)
     except:
+        print('dumping sm')
         sm = similarity_matrix(dl)
         with open(os.path.join(objects_path, 'sm.pkl'), 'wb') as f:
-            print('dumping sm')
             pickle.dump(sm, f)
             
     try:
-        with open(os.path.join(objects_path, 'cf.pkl'), 'rb') as f:
+        with open(os.path.join(root_dir,objects_path, 'cf.pkl'), 'rb') as f:
             print('loading cf')
             cf = pickle.load(f)
     except:
+        print('dumping cf')
         cf = itemCF(dl, sm)
-        with open(os.path.join(objects_path, 'cf.pkl'), 'wb') as f:
-            print('dumping cf')
+        with open(os.path.join(root_dir,objects_path, 'cf.pkl'), 'wb') as f:
             pickle.dump(cf, f)
     return cf
-
-rating_dict = getUserRating('user1', test_input['table'])
-cf = rec_init('./objects', './filelist/filelist.csv', './imgs', './features/features.json')
-output = cf.recommend(top=20, rating_dict=rating_dict, shuffle=True)
-print(output)
